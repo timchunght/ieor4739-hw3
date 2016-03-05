@@ -43,7 +43,7 @@ int PWRreadnload(char *filename, int *pn, double **pvector, double **pnewvector,
 void PWRpoweriteration(int ID, int k, 
 		    int n, double *vector, double *newvector, double *matrix,
 		       double *peigvalue, double *perror,
-		         pthread_mutex_t *poutputmutex);
+		         pthread_mutex_t *poutputmutex, int num_of_eigen);
 
 void PWRpoweralg(int n, double *vector, double *newvector, double *matrix,
 		 double *peigvalue);

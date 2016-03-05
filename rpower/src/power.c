@@ -69,6 +69,9 @@ int PWRreadnload_new(char *filename, int ID, powerbag **ppbag)
   pbag->newvector = newvector;
   pbag->matrix = matrix;
   pbag->status = WAITING;
+  pbag->num_of_eigen = 2;
+  pbag->eigvalue_list = (double *) malloc(sizeof(double) * pbag->num_of_eigen);
+
 
 BACK:
   return code;
@@ -118,10 +121,9 @@ BACK:
 void PWRpoweriteration(int ID, int k, 
     int n, double *vector, double *newvector, double *matrix,
     double *peigvalue, double *perror,
-    pthread_mutex_t *poutputmutex)
+    pthread_mutex_t *poutputmutex, int num_of_eigen)
 {
   double norm2 = 0, mult, error;
-  int num_of_eigen = 2;
   int i, j;
 
   // matrix is Q in this context
@@ -157,7 +159,7 @@ void PWRpoweriteration(int ID, int k,
       pthread_mutex_unlock(poutputmutex);
     }
 
-    *peigvalue = 1/mult;
+    peigvalue[k] = 1/mult;
     *perror = error;
 
 
@@ -169,7 +171,7 @@ void PWRpoweriteration(int ID, int k,
     // Set Q' = Q' - lambda w w^T
     for(i = 0; i < n; i++){
       for (j = 0; j < n; j++){
-        Q_pr[i*n + j] = q[i*n + j] mult*vector[f*n + i]*vector[f*n + j];
+        Q_pr[i*n + j] = Q_pr[i*n + j] - peigvalue[k]*vector[f*n + i]*vector[f*n + j];
       }
     }
   }
@@ -264,15 +266,15 @@ void PWRpoweralg_new(powerbag *pbag)
     for(k = 0; ; k++){
 
       /*      PWRshowvector(n, vector);*/
-      PWRpoweriteration(ID, k, n, vector, newvector, matrix, pbag->eigvalue_list, &error, pbag->poutputmutex);
+      PWRpoweriteration(ID, k, n, vector, newvector, matrix, pbag->eigvalue_list, &error, pbag->poutputmutex, pbag->num_of_eigen);
       if(error < tolerance){
         pthread_mutex_lock(pbag->poutputmutex);
         printf(" ID %d converged to tolerance %g! on job %d at iteration %d\n", ID, tolerance, pbag->jobnumber, k); 
         // here we will print all eigenvalue values in a for loop
-        for(int i = 0; i < pbag->num_of_eigen; i++) {
+        // for(int i = 0; i < pbag->num_of_eigen; i++) {
 
-          printf(" ID %d eigenvalue %d  %g!\n", ID, i, pbag->eigvalue_list[i]);
-        }
+        //   printf(" ID %d eigenvalue %d  %g!\n", ID, i, pbag->eigvalue_list[i]);
+        // }
 
         pthread_mutex_unlock(pbag->poutputmutex);
 

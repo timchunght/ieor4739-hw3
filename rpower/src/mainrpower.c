@@ -158,8 +158,13 @@ int main(int argc, char *argv[])
 
 	pthread_mutex_lock(&output);
 	printf("master:  worker %d is done with job %d\n", pbag->ID, pbag->jobnumber);
-  for()
-	printf(" top eigenvalue estimate: %.12e\n", pbag->topeigvalue);
+  
+  // here we will print all eigenvalue values in a for loop
+  for(int k = 0; k < pbag->num_of_eigen; k++) {
+    printf(" ID %d eigenvalue %d  %g!\n", pbag->ID, k, pbag->eigvalue_list[k]);
+  }
+
+
 	pthread_mutex_unlock(&output);
 
 	if(scheduledjobs >= quantity){
