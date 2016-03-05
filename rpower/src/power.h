@@ -21,7 +21,8 @@ typedef struct powerbag{
   double *matrix;
   double *matcopy;
   double *scratch;
-  double topeigvalue;
+  double* eigvalue_list;
+  int num_of_eigen;
   int ID;
   int status;
   int command;

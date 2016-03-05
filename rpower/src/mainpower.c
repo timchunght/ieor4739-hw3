@@ -1,28 +1,27 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "utilities.h"
-#include "power.h"
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include "utilities.h"
+// #include "power.h"
 
+// DEPRECATED
+// int main(int argc, char *argv[])
+// {
+//   int code = 0, n;
+//   double *matrix = NULL, *vector = NULL, *newvector = NULL;
 
+//   if(argc != 2){ 
+//     printf(" usage: power filename\n");
+//     code = 1; goto BACK;
+//   }
 
-int main(int argc, char *argv[])
-{
-  int code = 0, n;
-  double *matrix = NULL, *vector = NULL, *newvector = NULL;
+//   if((code = readnload(argv[1], &n, &vector, &newvector, &matrix))) goto BACK;
 
-  if(argc != 2){ 
-    printf(" usage: power filename\n");
-    code = 1; goto BACK;
-  }
-
-  if((code = readnload(argv[1], &n, &vector, &newvector, &matrix))) goto BACK;
-
-  poweralg(n, vector, newvector, matrix);
+//   poweralg(n, vector, newvector, matrix);
 
 	 
-BACK:
-  return code;
-}
+// BACK:
+//   return code;
+// }
 
 
 

@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
 
 	pthread_mutex_lock(&output);
 	printf("master:  worker %d is done with job %d\n", pbag->ID, pbag->jobnumber);
+  for()
 	printf(" top eigenvalue estimate: %.12e\n", pbag->topeigvalue);
 	pthread_mutex_unlock(&output);
 
