@@ -212,8 +212,8 @@ int main(int argc, char *argv[])
     if(gotone){
     /** if we are here, "theworker" can work **/
       pbag = ppbag[theworker];
-      if((code = cheap_rank1perturb(n, pbag->scratch, pbag->matcopy, pbag->matrix, scale)))
-	goto BACK;
+      // if((code = cheap_rank1perturb(n, pbag->scratch, pbag->matcopy, pbag->matrix, scale)))
+	// goto BACK;
 
       pthread_mutex_lock(&output);
       printf("master:  worker %d will run experiment %d\n", theworker, scheduledjobs);

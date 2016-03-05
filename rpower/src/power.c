@@ -69,7 +69,7 @@ int PWRreadnload_new(char *filename, int ID, powerbag **ppbag)
   pbag->newvector = newvector;
   pbag->matrix = matrix;
   pbag->status = WAITING;
-  pbag->num_of_eigen = 2;
+  pbag->num_of_eigen = 1;
   pbag->eigvalue_list = (double *) malloc(sizeof(double) * pbag->num_of_eigen);
 
 
@@ -79,7 +79,8 @@ BACK:
 
 int PWRreadnload(char *filename, int *pn, double **pvector, double **pnewvector, double **pmatrix)
 {
-  int retcode = 0, n, j;
+  int n = 0;
+  int retcode = 0, j;
   FILE *input = NULL;
   char buffer[100];
 
@@ -125,16 +126,15 @@ void PWRpoweriteration(int ID, int k,
 {
   double norm2 = 0, mult, error;
   int i, j;
-
   // matrix is Q in this context
   // we will be allocating Q_pr
-  int *Q_pr = malloc(sizeof(int) * n * n);
+  double *Q_pr = malloc(sizeof(double) * n * n);
   // we will copy the contents of matrix (aka Q) into Q_pr
   for(i = 0; i < n * n; i++) {
     Q_pr[i] = matrix[i];
   }
 
-  for(int k = 0; k < num_of_eigen; k++) {
+  for(int z = 0; z < num_of_eigen; z++) {
     // this is computation of QV and we place it in newvector
     for(i = 0; i <n; i++){
       newvector[i] = 0;
@@ -149,9 +149,9 @@ void PWRpoweriteration(int ID, int k,
     mult = 1/sqrt(norm2);
 
     for(j = 0; j < n; j++) newvector[j] = newvector[j]*mult;
-
+    // printf("mult before: %g\n", mult);
     PWRcompute_error(n, &error, newvector, vector);
-
+    // printf("mult after: %g\n", mult);
     if(0 == k%1000){
       pthread_mutex_lock(poutputmutex);
       printf("ID %d at iteration %d, norm is %g, ", ID, k, 1/mult);
@@ -159,7 +159,8 @@ void PWRpoweriteration(int ID, int k,
       pthread_mutex_unlock(poutputmutex);
     }
 
-    peigvalue[k] = 1/mult;
+    peigvalue[z] = 1/mult;
+    // printf("eig: %g\n", 1/mult);
     *perror = error;
 
 
@@ -171,7 +172,7 @@ void PWRpoweriteration(int ID, int k,
     // Set Q' = Q' - lambda w w^T
     for(i = 0; i < n; i++){
       for (j = 0; j < n; j++){
-        Q_pr[i*n + j] = Q_pr[i*n + j] - peigvalue[k]*vector[f*n + i]*vector[f*n + j];
+        Q_pr[i*n + j] = Q_pr[i*n + j] - peigvalue[z]*vector[i]*vector[j];
       }
     }
   }
@@ -254,7 +255,7 @@ void PWRpoweralg_new(powerbag *pbag)
     pthread_mutex_unlock(pbag->poutputmutex);
 
     /** let's do the perturbation here **/
-    if((retcode = cheap_rank1perturb(n, pbag->scratch, pbag->matcopy, pbag->matrix, 10.0)))
+    if((retcode = cheap_rank1perturb(n, pbag->scratch, pbag->matcopy, pbag->matrix, 0)))
       goto DONE;
 
     /** initialize vector to random**/
