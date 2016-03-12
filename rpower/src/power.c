@@ -69,7 +69,7 @@ int PWRreadnload_new(char *filename, int ID, powerbag **ppbag)
   pbag->newvector = newvector;
   pbag->matrix = matrix;
   pbag->status = WAITING;
-  pbag->num_of_eigen = 1;
+  pbag->num_of_eigen = 2;
   pbag->eigvalue_list = (double *) malloc(sizeof(double) * pbag->num_of_eigen);
 
 
@@ -215,7 +215,7 @@ void PWRpoweralg_new(powerbag *pbag)
   vector = pbag->vector;
   newvector = pbag->newvector;
   matrix = pbag->matrix;
-  tolerance = 1e-20; /** excessive **/
+  tolerance = 1e-5; /** excessive **/
   /*  if (tolerance < 1e-7) tolerance = 1e-7;*/
 
   for(;;){
