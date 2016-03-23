@@ -69,8 +69,8 @@ int PWRreadnload_new(char *filename, int ID, powerbag **ppbag)
   pbag->newvector = newvector;
   pbag->matrix = matrix;
   pbag->status = WAITING;
-  pbag->num_of_eigen = 2;
-  pbag->eigvalue_list = (double *) malloc(sizeof(double) * pbag->num_of_eigen);
+  pbag->num_of_eigen = 5;
+  pbag->eigvalue_list = (double *) calloc(pbag->num_of_eigen, sizeof(double));
 
 
 BACK:
@@ -122,7 +122,7 @@ BACK:
 void PWRpoweriteration(int ID, int k, 
     int n, double *vector, double *newvector, double *matrix,
     double *peigvalue, double *perror,
-    pthread_mutex_t *poutputmutex, int num_of_eigen)
+		       pthread_mutex_t *poutputmutex, int z)
 {
   double norm2 = 0, mult, error;
   int i, j;
@@ -134,7 +134,6 @@ void PWRpoweriteration(int ID, int k,
     Q_pr[i] = matrix[i];
   }
 
-  for(int z = 0; z < num_of_eigen; z++) {
     // this is computation of QV and we place it in newvector
     for(i = 0; i <n; i++){
       newvector[i] = 0;
@@ -168,14 +167,14 @@ void PWRpoweriteration(int ID, int k,
 
     for(j = 0; j < n; j++) vector[j] = newvector[j];
 
-    // need to update Q matrix
-    // Set Q' = Q' - lambda w w^T
+    /* need to update Q matrix
+        Set Q' = Q' - lambda w w^T
     for(i = 0; i < n; i++){
       for (j = 0; j < n; j++){
         Q_pr[i*n + j] = Q_pr[i*n + j] - peigvalue[z]*vector[i]*vector[j];
       }
-    }
-  }
+      }*/
+
 
   free(Q_pr);
 
@@ -198,10 +197,10 @@ void PWRcompute_error(int n, double *perror, double *newvector, double *vector)
 
 void PWRpoweralg_new(powerbag *pbag)
 {
-  int n, ID;
+  int n, ID, z, i, j;
   double *vector, *newvector, *matrix;
   int k, waitcount, retcode;
-  double error, tolerance;
+  double error, tolerance, value;
   char letsgo = 0, interrupting, forcedquit = 0;
 
   ID = pbag->ID;
@@ -258,16 +257,19 @@ void PWRpoweralg_new(powerbag *pbag)
     if((retcode = cheap_rank1perturb(n, pbag->scratch, pbag->matcopy, pbag->matrix, 0)))
       goto DONE;
 
+
+    
     /** initialize vector to random**/
     for(k = 0; k < n; k++){ 
       vector[k] = rand()/((double) RAND_MAX);
     }
 
-
+    for (z = 0; z < pbag->num_of_eigen; z++){
+      /* compute eigenvalue #z */
     for(k = 0; ; k++){
 
       /*      PWRshowvector(n, vector);*/
-      PWRpoweriteration(ID, k, n, vector, newvector, matrix, pbag->eigvalue_list, &error, pbag->poutputmutex, pbag->num_of_eigen);
+      PWRpoweriteration(ID, k, n, vector, newvector, matrix, pbag->eigvalue_list, &error, pbag->poutputmutex, z);
       if(error < tolerance){
         pthread_mutex_lock(pbag->poutputmutex);
         printf(" ID %d converged to tolerance %g! on job %d at iteration %d\n", ID, tolerance, pbag->jobnumber, k); 
@@ -300,6 +302,15 @@ void PWRpoweralg_new(powerbag *pbag)
           break; /** takes you outside of for loop **/
       }
     }
+    printf("**** after z-loop %d, we have eigvalue %g\n", z, pbag->eigvalue_list[z]);
+    value = pbag->eigvalue_list[z];
+
+    for(i = 0; i < n; i++){
+      for (j = 0; j < n; j++){
+       matrix[i*n + j] = matrix[i*n + j] - value*vector[i]*vector[j];
+      }
+    }
+    } /* for (z = 0; etc */
 
     /** first, let's check if we have been told to quit **/
     pthread_mutex_lock(pbag->psynchro);
